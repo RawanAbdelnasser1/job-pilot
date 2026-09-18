@@ -15,9 +15,16 @@ localPort = 21845
 run = "pnpm --filter @workspace/jobpilot run dev"
 
 [services.production]
-build = [ "pnpm", "--filter", "@workspace/jobpilot", "run", "build" ]
 serve = "static"
 publicDir = "artifacts/jobpilot/dist/public"
+
+[services.production.build]
+args = [ "pnpm", "--filter", "@workspace/jobpilot", "run", "build" ]
+
+[services.production.build.env]
+NODE_ENV = "production"
+PORT = "21845"
+BASE_PATH = "/"
 
 [[services.production.rewrites]]
 from = "/*"
