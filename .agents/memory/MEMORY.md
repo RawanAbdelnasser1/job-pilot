@@ -1,0 +1,3 @@
+- [AI credential provisioning](ai-credential-provisioning.md) — managed OpenAI approval may be unavailable; keep managed-first access with a secure direct-key fallback.
+- [JobPilot portal execution](jobpilot-portal-execution.md) — Playwright must be installed in the API artifact and its Chromium runtime provisioned before supported-portal execution can run.
+- [GitHub connector pushes](github-connector-pushes.md) — GitHub API uploads need throttling and ref verification because the connector is not a local git remote.

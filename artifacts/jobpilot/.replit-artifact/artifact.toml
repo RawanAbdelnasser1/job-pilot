@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "JobPilot"
+description = "An AI-assisted job application workspace that manages career profiles, matches jobs, tailors application documents, supports review-first and controlled batch application modes, and tracks application outcomes."
+version = "1.0.0"
+id = "artifacts/jobpilot"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21845
+
+[services.development]
+run = "pnpm --filter @workspace/jobpilot run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/jobpilot", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/jobpilot/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21845"
+BASE_PATH = "/"

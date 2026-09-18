@@ -1,0 +1,17 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "hOaZlqf9TvKplaYefDztc"
+uri = "file://.local/conversation-workspace/files/autonomous-job-agent-architecture.md"
+type = "text"
+title = "Autonomous Job Agent — Architecture & Roadmap"
+description = "Implementation-ready architecture covering product scope, security boundaries, data model, workflows, APIs, testing, risks, and phased delivery."
+logical_id = "2e2a247e-ae90-4637-9bb0-2131a17b3d99"
+content_hash = "sha256:6038ab0c1be555eed72734d7160ce13c512d2dbeed3304e325a9d3162f452cb3"
+size = 29733
+mtime_ms = 1789213986284
+storage_uri = "gcs://replit-rams-assets-reed/rams/assets/conversation:2b942e6f-45ed-440d-9437-f01a6678960e/2e2a247e-ae90-4637-9bb0-2131a17b3d99/bcaa225b-2086-4eb7-9038-dd10edf8d855"
+storage_version_token = "1789213990663930"
+content_type = "text/markdown"
+source_uri = "file://autonomous-job-agent-architecture.md"

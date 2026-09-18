@@ -1,0 +1,811 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: JobPilot application API
+servers:
+  - url: /api
+    description: Base API path
+security:
+  - clerkSession: []
+  - bearerAuth: []
+tags:
+  - name: health
+  - name: dashboard
+  - name: profile
+  - name: jobs
+  - name: applications
+  - name: activity
+  - name: tailoring
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      security: []
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [dashboard]
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dashboard"
+  /profile:
+    get:
+      operationId: getProfile
+      tags: [profile]
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200":
+          description: Career profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+    put:
+      operationId: updateProfile
+      tags: [profile]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileUpdate"
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+  /jobs:
+    get:
+      operationId: listJobs
+      tags: [jobs]
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200":
+          description: Job queue
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Job"
+    post:
+      operationId: createJob
+      tags: [jobs]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobInput"
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "201":
+          description: Created job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+  /jobs/{id}:
+    get:
+      operationId: getJob
+      tags: [jobs]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200":
+          description: Job detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+    patch:
+      operationId: updateJob
+      tags: [jobs]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobUpdate"
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200":
+          description: Updated job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+  /jobs/{id}/prepare:
+    post:
+      operationId: prepareApplication
+      tags: [jobs, applications]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrepareApplicationInput"
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "201":
+          description: Prepared application
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Application"
+  /jobs/{id}/generations:
+    get:
+      operationId: listJobGenerations
+      tags: [tailoring]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200":
+          description: Stored tailoring versions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Generation"
+    post:
+      operationId: generateJobDocuments
+      tags: [tailoring]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerationInput"
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "201":
+          description: Generated CV and cover letter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Generation"
+  /generations/{id}:
+    get:
+      operationId: getGeneration
+      tags: [tailoring]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200":
+          description: Generation version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Generation"
+    patch:
+      operationId: updateGeneration
+      tags: [tailoring]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerationUpdate"
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "200":
+          description: Updated generation version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Generation"
+  /generations/{id}/cv.docx:
+    get:
+      operationId: downloadGenerationCv
+      tags: [tailoring]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200":
+          description: ATS-friendly CV DOCX
+          content:
+            application/vnd.openxmlformats-officedocument.wordprocessingml.document:
+              schema:
+                type: string
+                format: binary
+  /generations/{id}/cover-letter.docx:
+    get:
+      operationId: downloadGenerationCoverLetter
+      tags: [tailoring]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200":
+          description: ATS-friendly cover letter DOCX
+          content:
+            application/vnd.openxmlformats-officedocument.wordprocessingml.document:
+              schema:
+                type: string
+                format: binary
+  /applications:
+    get:
+      operationId: listApplications
+      tags: [applications]
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200":
+          description: Applications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Application"
+  /applications/{id}:
+    patch:
+      operationId: updateApplication
+      tags: [applications]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApplicationUpdate"
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200":
+          description: Updated application
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Application"
+  /applications/{id}/execution/prepare:
+    post:
+      operationId: prepareApplicationExecution
+      tags: [applications]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApplicationExecutionInput"
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { description: Application not found }
+        "200":
+          description: Prepared application execution
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExecutionStatus"
+  /applications/{id}/execution:
+    get:
+      operationId: getApplicationExecution
+      tags: [applications]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { description: Application not found }
+        "200":
+          description: Application execution status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExecutionStatus"
+  /applications/{id}/execution/submit:
+    post:
+      operationId: submitApplicationExecution
+      tags: [applications]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApplicationExecutionSubmitInput"
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { description: Application not found }
+        "409": { description: Execution session is missing or expired }
+        "200":
+          description: Submitted application execution
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExecutionStatus"
+  /batch-settings:
+    get:
+      operationId: getBatchSettings
+      tags: [applications]
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200":
+          description: Batch mode settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchSettings"
+    put:
+      operationId: updateBatchSettings
+      tags: [applications]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BatchSettingsUpdate"
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchSettings"
+  /batch-runs:
+    post:
+      operationId: startBatchRun
+      tags: [applications]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BatchRunInput"
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "201":
+          description: Started batch run
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchRun"
+  /activity:
+    get:
+      operationId: listActivity
+      tags: [activity]
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "200":
+          description: Recent activity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityItem"
+  /tracking/sync:
+    post:
+      operationId: syncRecruiterTracking
+      tags: [applications]
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "502": { description: Gmail could not be read }
+        "200":
+          description: Recruiter reply sync result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrackingSync"
+components:
+  securitySchemes:
+    clerkSession:
+      type: apiKey
+      in: cookie
+      name: __session
+      description: Clerk browser session cookie.
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Clerk session token for non-browser clients.
+  responses:
+    Unauthorized:
+      description: A valid Clerk session is required.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: The authenticated request is not allowed.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    RateLimited:
+      description: The per-user AI request limit was reached.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+    Dashboard:
+      type: object
+      required: [jobsDiscovered, queued, applied, interviews, responseRate, dailyUsed, dailyLimit, pipeline]
+      properties:
+        jobsDiscovered: { type: integer }
+        queued: { type: integer }
+        applied: { type: integer }
+        interviews: { type: integer }
+        responseRate: { type: number }
+        dailyUsed: { type: integer }
+        dailyLimit: { type: integer }
+        pipeline:
+          type: array
+          items:
+            $ref: "#/components/schemas/PipelineStage"
+    PipelineStage:
+      type: object
+      required: [status, count]
+      properties:
+        status: { type: string }
+        count: { type: integer }
+    Profile:
+      type: object
+      required: [id, fullName, email, targetRoles, preferredLocations, workModes, minimumSalary, skills, evidence, completion]
+      properties:
+        id: { type: integer }
+        fullName: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        location: { type: string }
+        headline: { type: string }
+        targetRoles:
+          type: array
+          items: { type: string }
+        preferredLocations:
+          type: array
+          items: { type: string }
+        workModes:
+          type: array
+          items: { type: string }
+        minimumSalary: { type: integer }
+        skills:
+          type: array
+          items: { type: string }
+        evidence:
+          type: array
+          items:
+            $ref: "#/components/schemas/EvidenceItem"
+        completion: { type: integer }
+    ProfileUpdate:
+      type: object
+      required: [fullName, email, targetRoles, preferredLocations, workModes, minimumSalary, skills, evidence]
+      properties:
+        fullName: { type: string, minLength: 1 }
+        email: { type: string, format: email }
+        phone: { type: string }
+        location: { type: string }
+        headline: { type: string }
+        targetRoles:
+          type: array
+          items: { type: string }
+        preferredLocations:
+          type: array
+          items: { type: string }
+        workModes:
+          type: array
+          items: { type: string }
+        minimumSalary: { type: integer, minimum: 0 }
+        skills:
+          type: array
+          items: { type: string }
+        evidence:
+          type: array
+          items:
+            $ref: "#/components/schemas/EvidenceItem"
+    EvidenceItem:
+      type: object
+      required: [id, category, title, organization, detail, source]
+      properties:
+        id: { type: string, minLength: 1 }
+        category:
+          type: string
+          enum: [experience, achievement, education, certification, project]
+        title: { type: string, minLength: 1 }
+        organization: { type: string }
+        startDate: { type: string }
+        endDate: { type: string }
+        detail: { type: string, minLength: 1 }
+        source: { type: string, minLength: 1 }
+    Job:
+      type: object
+      required: [id, company, title, location, workMode, salary, fitScore, status, source, postedAt, matchedSkills, missingSkills, description]
+      properties:
+        id: { type: integer }
+        company: { type: string }
+        title: { type: string }
+        location: { type: string }
+        workMode: { type: string }
+        salary: { type: string }
+        fitScore: { type: integer }
+        status: { type: string }
+        source: { type: string }
+        sourceUrl: { type: string }
+        postedAt: { type: string }
+        matchedSkills:
+          type: array
+          items: { type: string }
+        missingSkills:
+          type: array
+          items: { type: string }
+        description: { type: string }
+    JobInput:
+      type: object
+      required: [company, title, location, workMode, salary, source, description]
+      properties:
+        company: { type: string, minLength: 1 }
+        title: { type: string, minLength: 1 }
+        location: { type: string }
+        workMode: { type: string }
+        salary: { type: string }
+        source: { type: string }
+        sourceUrl: { type: string }
+        description: { type: string, minLength: 1 }
+    JobUpdate:
+      type: object
+      properties:
+        status: { type: string }
+        fitScore: { type: integer, minimum: 0, maximum: 100 }
+    PrepareApplicationInput:
+      type: object
+      required: [mode]
+      properties:
+        mode:
+          type: string
+          enum: [review, batch]
+    Application:
+      type: object
+      required: [id, jobId, company, title, mode, portalType, status, progress, executionState, currentStep, requiresUserAction, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        jobId: { type: integer }
+        company: { type: string }
+        title: { type: string }
+        mode: { type: string }
+        portalType: { type: string }
+        status: { type: string }
+        progress: { type: integer }
+        executionState: { type: string }
+        currentStep: { type: string }
+        portalUrl: { type: string }
+        blocker: { type: ["string", "null"] }
+        lastError: { type: ["string", "null"] }
+        requiresUserAction: { type: boolean }
+        submittedAt: { type: ["string", "null"] }
+        lastReplyAt: { type: ["string", "null"] }
+        lastReplyType: { type: ["string", "null"] }
+        lastReplySubject: { type: ["string", "null"] }
+        lastReplySnippet: { type: ["string", "null"] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+    ApplicationUpdate:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string }
+        progress: { type: integer, minimum: 0, maximum: 100 }
+        blocker: { type: ["string", "null"] }
+    ApplicationExecutionInput:
+      type: object
+      required: [submitAutomatically]
+      properties:
+        submitAutomatically: { type: boolean }
+    ApplicationExecutionSubmitInput:
+      type: object
+      required: [approvalToken]
+      properties:
+        approvalToken: { type: string, minLength: 20 }
+    ExecutionEvent:
+      type: object
+      required: [id, type, message, createdAt]
+      properties:
+        id: { type: integer }
+        type: { type: string }
+        message: { type: string }
+        createdAt: { type: string }
+    ExecutionStatus:
+      type: object
+      required: [applicationId, portalType, executionState, currentStep, filledFields, totalFields, unresolvedFields, requiresUserAction, approvalToken, events]
+      properties:
+        applicationId: { type: integer }
+        portalType: { type: string }
+        executionState: { type: string }
+        currentStep: { type: string }
+        filledFields: { type: integer }
+        totalFields: { type: integer }
+        unresolvedFields:
+          type: array
+          items: { type: string }
+        requiresUserAction: { type: boolean }
+        approvalToken: { type: ["string", "null"] }
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExecutionEvent"
+    GenerationInput:
+      type: object
+      required: [instructions]
+      properties:
+        instructions: { type: string, maxLength: 2000 }
+    GenerationUpdate:
+      type: object
+      properties:
+        cvMarkdown: { type: string }
+        coverLetterMarkdown: { type: string }
+        status:
+          type: string
+          enum: [draft, approved]
+    Generation:
+      type: object
+      required: [id, jobId, version, status, model, cvMarkdown, coverLetterMarkdown, evidenceIds, claims, rejectedClaims, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        jobId: { type: integer }
+        version: { type: integer }
+        status: { type: string }
+        model: { type: string }
+        cvMarkdown: { type: string }
+        coverLetterMarkdown: { type: string }
+        evidenceIds:
+          type: array
+          items: { type: string }
+        claims:
+          type: array
+          items:
+            $ref: "#/components/schemas/GenerationClaim"
+        rejectedClaims:
+          type: array
+          items: { type: string }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+    GenerationClaim:
+      type: object
+      required: [section, text, evidenceIds]
+      properties:
+        section: { type: string }
+        text: { type: string }
+        evidenceIds:
+          type: array
+          minItems: 1
+          items: { type: string }
+    BatchSettings:
+      type: object
+      required: [enabled, dailyLimit, delayMinutes, minimumFitScore, requireReviewForSensitive, stopOnCaptcha, stopOnMfa]
+      properties:
+        enabled: { type: boolean }
+        dailyLimit: { type: integer }
+        delayMinutes: { type: integer }
+        minimumFitScore: { type: integer }
+        requireReviewForSensitive: { type: boolean }
+        stopOnCaptcha: { type: boolean }
+        stopOnMfa: { type: boolean }
+    BatchSettingsUpdate:
+      type: object
+      required: [enabled, dailyLimit, delayMinutes, minimumFitScore, requireReviewForSensitive, stopOnCaptcha, stopOnMfa]
+      properties:
+        enabled: { type: boolean }
+        dailyLimit: { type: integer, minimum: 1, maximum: 100 }
+        delayMinutes: { type: integer, minimum: 1, maximum: 120 }
+        minimumFitScore: { type: integer, minimum: 0, maximum: 100 }
+        requireReviewForSensitive: { type: boolean }
+        stopOnCaptcha: { type: boolean }
+        stopOnMfa: { type: boolean }
+    BatchRunInput:
+      type: object
+      required: [jobIds]
+      properties:
+        jobIds:
+          type: array
+          minItems: 1
+          items: { type: integer }
+    BatchRun:
+      type: object
+      required: [id, status, queuedCount, startedAt]
+      properties:
+        id: { type: integer }
+        status: { type: string }
+        queuedCount: { type: integer }
+        startedAt: { type: string }
+    ActivityItem:
+      type: object
+      required: [id, type, title, description, timestamp]
+      properties:
+        id: { type: integer }
+        type: { type: string }
+        title: { type: string }
+        description: { type: string }
+        timestamp: { type: string }
+    TrackingSync:
+      type: object
+      required: [scannedThreads, matchedMessages, newMessages, updatedApplications]
+      properties:
+        scannedThreads: { type: integer }
+        matchedMessages: { type: integer }
+        newMessages: { type: integer }
+        updatedApplications: { type: integer }
